@@ -1,16 +1,23 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../providers/AuthProvider";
 import { useForm } from "react-hook-form";
-import useAxiosSecure from "../hooks/useAxiosSecure";
-import Swal from "sweetalert2";
 import ReactQuill from "react-quill";
-import Button from "../components/Button";
 import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import categories from "../../public/category.json";
-import useAdmin from "../hooks/useAdmin";
-import { Helmet } from 'react-helmet';
+import Button from "../components/Button";
 import { baseUrl } from "../config/Url";
+import useAdmin from "../hooks/useAdmin";
+import useAxiosSecure from "../hooks/useAxiosSecure";
+import { AuthContext } from "../providers/AuthProvider";
+
+import Select from 'react-select';
+import makeAnimated from 'react-select/animated';
+
+
+import React from 'react';
+
+const animatedComponents = makeAnimated();
 
 const ToolsForm = () => {
   const [metaTitle, setMetaTitle] = useState('');
@@ -68,6 +75,12 @@ const ToolsForm = () => {
       );
     }
   };
+
+  const options = [
+    { value: 'chocolate', label: 'Chocolate' },
+    { value: 'strawberry', label: 'Strawberry' },
+    { value: 'vanilla', label: 'Vanilla' }
+  ]
 
   return (
     <main className="flex items-center justify-center py-10">
@@ -209,11 +222,22 @@ const ToolsForm = () => {
 
           <div className="mb-4">
             <label className="block text-sm font-bold mb-2">Tags:</label>
-            <input
+            {/* <input
               type="text"
               {...register("tags", { required: true })}
               className="bg-cyprus/90  dark:bg-white shadow rounded py-2 px-4 w-full appearance-none focus:outline-none"
+            /> */}
+
+            <Select
+              {...register("tags", { required: true })}
+              closeMenuOnSelect={false}
+              components={animatedComponents}
+              defaultValue={[options[4], options[5]]}
+              isMulti
+              options={options}
             />
+
+
             {errors.tags && (
               <p className="text-red-500 text-xs italic">Tags is required.</p>
             )}

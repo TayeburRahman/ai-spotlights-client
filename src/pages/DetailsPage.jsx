@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import clsx from "clsx";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import { AiFillYoutube } from "react-icons/ai";
 import { BsDiscord, BsTwitter } from "react-icons/bs";
@@ -9,14 +9,24 @@ import { FaFacebook } from "react-icons/fa";
 import { ImLinkedin } from "react-icons/im";
 import { MdFavorite } from "react-icons/md";
 import Rating from "react-rating";
-import { Link, useLoaderData, useParams } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 import { buttonVariants } from "../components/Button";
 import ToolsCard from "../components/ToolsCard";
 import { baseUrl } from "../config/Url";
+import useFavourite from "../hooks/useFavourite";
 
-const DetailsPage = () => {
-  const params = useParams()
+import useToast from "../hooks/useToast";
+import { AuthContext } from "../providers/AuthProvider";
+
+const DetailsPage = () => { 
+
+  const { user } = useContext(AuthContext);
+  const { showToast, displayToast } = useToast();
+
   const [isOpenText, setIsOpenText] = useState(false);
+  const [isFeedback, setFeedBack] = useState('');
+
+   
   const { isLoading, error, data } = useQuery({
     queryKey: ["approvedTools"],
     queryFn: () =>
@@ -44,36 +54,71 @@ const DetailsPage = () => {
     linkedinLink,
     ratings,
     favourite,
+    feedback,
     tags
   } = toolDetails.data;
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
+ const item = toolDetails.data;
 
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Error: {error.message}
-      </div>
-    );
+ const { existing, favourite: favour, handelOnAddFeature } = useFavourite( item, user);
 
-  const relatedTools = data
-    .filter((tool) => tool.category === category && tool.title !== title)
+ 
+  const relatedTools = data?.filter((tool) => tool.category === category && tool.title !== title)
     .slice(0, 6);
 
-  const relatedProducts = data
-    .filter((tool) => tool.ratings === ratings && tool.title !== title)
-    .slice(0, 6);
+  const relatedProducts = data?.filter((tool) => tool.ratings === ratings && tool.title !== title)
+    .slice(0, 6); 
 
-    const handelOnSubmit = (event)=>{
+
+
+    const handelOnSubmit = async (event) => {
       event.preventDefault();
-      console.log(event.target.value);
+      
+      if (!user) {
+        // showToast("Please log in to your account!"); 
+        displayToast({ status: 'success', message: "Please log in to your account!" })
+        return;
+      }
+    
+      const formData = {
+        text: isFeedback,
+        user: user
+      };
+    
+      try {
+        const response = await axios.post(`http://localhost:6060/api/v1/tools/feedback/${_id}`, {
+          formData
+        }); 
+        if (response.status === 200) {
+          setFeedBack('');
+          displayToast({ status: 'success', message: "Feedback submitted successfully. Thank you!" });
+        } else {
+          throw new Error("Failed to submit feedback. Please try again later."); 
+        } 
+      } catch (error) {
+        console.error("Error:", error.message); 
+        displayToast({ status: 'error', message: "Failed to submit feedback. Please try again later." });
+         
+      }
+    };
+ 
 
-    }
+
+      if (isLoading)
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          Loading...
+        </div>
+      );
+     
+     if (error)
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          Error: {error.message}
+        </div>
+      );
+ 
+  
 
   return (
     <main className="wrapper details-wrapper my-10">
@@ -93,25 +138,23 @@ const DetailsPage = () => {
 
         <div className="space-y-2">
           <h2 className="text-5xl font-bold capitalize">{title}</h2>
-          <Rating
+          
+          <Rating  
             className="text-[24px]"
             initialRating={ratings}
             readonly
             emptySymbol={<span className="text-gray-300">&#9734;</span>}
             fullSymbol={<span className="text-yellow-400">&#9733; </span>}
-          /> ({ratings})
+          />
+         
+          ({ratings})
           <div className="flex gap-2 items-center">
-            <MdFavorite className="text-red-500 h-6 w-6 cursor-pointer" /> {favourite === undefined || favourite === 0 ? (
-              (`(0)`)
-            ) : (
-              <>
-                ({favourite})
-              </>
-            )}
+            <MdFavorite 
+            onClick={(e) => handelOnAddFeature(_id)} className="text-red-500 h-6 w-6 cursor-pointer" />  
+              {user?.email? favour?.length: favourite?.length} 
           </div>
 
-          <h4 className="text-lg">{subtitle}</h4>
-
+          <h4 className="text-lg">{subtitle}</h4> 
 
           <Link
             to={websiteLink}
@@ -170,11 +213,12 @@ const DetailsPage = () => {
             )}
 
               <div>
-               <p className="mt-4">FeedBack:</p>
-               
+               <p className="mt-4">FeedBack:</p> 
                <form className="mt-3" onSubmit={handelOnSubmit}>
-                  <textarea className="py-2 px-2 textarea_feedback" type="text" 
+                  <textarea className="py-2 px-2 textarea_feedback" required type="text" 
+                  value={isFeedback}
                   onChange={(e) => setFeedBack(e.target.value)} 
+                    
                   placeholder="Enter your feedback" /> <br />
                   <button type="submit"  className={buttonVariants({ colors: "transparent", size: "small" })}> Submit </button> 
                </form> 
@@ -213,11 +257,11 @@ const DetailsPage = () => {
         {/* { relatedProducts.length > 0 && ( */}
         <div className="my-10 w-[25%] card-align">
           <p className="font-bold text-2xl mb-5">Similar Tools </p>
-          {relatedProducts.length === 0 ? (
+          {relatedProducts?.length === 0 ? (
             <p className="text-sky-300 font-medium">No similar products available!</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-10 cards-align">
-              {relatedProducts.map((item, index) => (
+              {relatedProducts?.map((item, index) => (
                 <ToolsCard key={index} item={item} />
               ))}
             </div>
@@ -228,7 +272,7 @@ const DetailsPage = () => {
       </div>
 
 
-      {relatedTools.length > 0 && (
+      {relatedTools && relatedTools.length > 0 && (
         <div className="my-10">
           <p className="font-bold text-2xl mb-5">Similar Category Tools </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -238,6 +282,25 @@ const DetailsPage = () => {
           </div>
         </div>
       )}
+
+      <div className="">
+        <h4 className="font-bold text-xl capitalize"><span className="font-bold">{title}</span> Feedback: </h4>
+
+        {
+          feedback && feedback.map(({feedback_text, user}, index) =>(
+            <div className="textarea_feedback p-3 mt-2" key={index}>
+               <div className="flex items-end">
+                <img className="w-12 rounded me-2" src={user?.photoURL} />  
+                <h2>{user?.displayName}</h2></div>
+              <p className="space-y-5  mt-2 font-extralight">{feedback_text}</p>
+            </div> 
+          ))
+        }
+
+ 
+ 
+
+      </div>
 
     </main>
   );

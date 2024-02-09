@@ -1,28 +1,27 @@
-import { createBrowserRouter } from "react-router-dom";
 import axios from "axios";
-import Main from "../layout/Main";
-import Home from "../layout/Home";
+import { createBrowserRouter } from "react-router-dom";
+import { baseUrl } from "../config/Url";
 import Dashboard from "../layout/Dashboard";
-import ToolsForm from "../pages/ToolsForm";
+import Home from "../layout/Home";
+import Main from "../layout/Main";
+import AllCategories from "../pages/AllCategories";
+import Blogs from "../pages/Blogs";
+import BlogsForm from "../pages/BlogsForm";
+import Category from "../pages/Category";
+import Contact from "../pages/Contact";
 import DashboardHome from "../pages/DashboardHome";
-import MyTools from "../pages/MyTools";
+import Deals from "../pages/Deals";
+import DetailsPage from "../pages/DetailsPage";
+import ManageBlogs from "../pages/ManageBlogs";
 import ManageTools from "../pages/ManageTools";
 import ManageUsers from "../pages/ManageUsers";
-import DetailsPage from "../pages/DetailsPage";
-import PrivateRoute from "./PrivateRoute";
-import UpdateTool from "../pages/UpdateTool";
-import BlogsForm from "../pages/BlogsForm";
-import Blogs from "../pages/Blogs";
-import ManageBlogs from "../pages/ManageBlogs";
-import UpdateBlog from "../pages/UpdateBlog";
-import ToolsCard from "../components/ToolsCard";
-import Category from "../pages/Category";
+import MyTools from "../pages/MyTools";
 import Search from "../pages/Search";
 import Test from "../pages/Test";
-import Deals from "../pages/Deals";
-import { baseUrl } from "../config/Url";
-import Contact from "../pages/Contact";
-import AllCategories from "../pages/AllCategories";
+import ToolsForm from "../pages/ToolsForm";
+import UpdateBlog from "../pages/UpdateBlog";
+import UpdateTool from "../pages/UpdateTool";
+import PrivateRoute from "./PrivateRoute";
 
 const router = createBrowserRouter([
   {
@@ -84,7 +83,7 @@ const router = createBrowserRouter([
         element: <DetailsPage />,
         loader: ({ params }) =>
           axios.get(
-            `${baseUrl}/api/v1/tools/${params.title}`
+            `http://localhost:6060/api/v1/tools/${params.title}`
           ),
       },
       {

@@ -145,4 +145,8 @@ td {
   .cardi {
     margin-top: 20px;
   }
+
+  .textarea_feedback { 
+    width: 100%; 
+  }
 }

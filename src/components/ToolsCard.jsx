@@ -1,66 +1,17 @@
-import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { FiExternalLink } from "react-icons/fi";
 import { MdFavorite, MdVerified } from "react-icons/md";
 import Rating from "react-rating";
 import { Link } from "react-router-dom";
-import useToast from "../hooks/useToast";
+import useFavourite from "../hooks/useFavourite";
 import { AuthContext } from "../providers/AuthProvider";
 import Button, { buttonVariants } from "./Button";
 
-const ToolsCard = ({ item }) => {
-
-  const [status, setStatus] = useState(false)
-  const { user } = useContext(AuthContext);
-  const { showToast } = useToast();
-
-  const [existing, setExisting] = useState()
-  const [favourite, setFavourite] = useState({}) 
-
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:6060/api/v1/tools/featured/${item?._id}/${user.email}`)
-        const result = response.data;
-        setExisting(result.exist);
-        setFavourite(result.favour);
-        if (response.status !== 200) {
-          console.error(`Failed to fetch data. Status: ${response.status}`)
-        }
-      } catch (error) {
-        console.log('Error fetching data:', error.message);
-      }
-    };
-
-    fetchData();
-  }, [user, status]);
-
-
-  const handelOnAddFeature = (id) => {
-
-    if (!user) {
-      showToast("Please Login your account!"); 
-      return;
-     }
-
+const ToolsCard = ({ item }) => { 
   
-      axios.put(`http://localhost:6060/api/v1/tools/featured/${id}/${user?.email}`)
-      .then(res => {
-        // Assuming the response contains data  
-        console.log("Response:", res.data);
-        setStatus((data) => !data);
-      })
-      .catch(error => {
-        console.error("Error:", error.message);
-      });
+  const { user } = useContext(AuthContext);  
+  const { existing, favourite, handelOnAddFeature } = useFavourite(item, user);
    
-
-   
-  };
-
-
-
 
   return (
     <div className="rounded-[1rem] bg-cyprus/95 toolscard dark:bg-white brightness-110 overflow-hidden shadow-xl max-h-full pb-[60px] cardi">
